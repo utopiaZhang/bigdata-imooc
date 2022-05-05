@@ -1,0 +1,21 @@
+连接neo4j
+bin/cypher-shell -a bolt://bigdata04:7687 -u neo4j -p admin
+
+建立索引
+CREATE CONSTRAINT ON (user:User) ASSERT user.uid IS UNIQUE;
+
+批量导入数据
+USING PERIODIC COMMIT 1000
+       LOAD CSV WITH HEADERS FROM 'file:///follower_00.log' AS line FIELDTERMINATOR '\t'
+       MERGE (viewer:User { uid: toString(line.fuid)})
+       MERGE (anchor:User { uid: toString(line.uid)})
+       MERGE (viewer)-[:follow]->(anchor);
+	   
+	   
+	   
+关注数据
+{"followeruid":"2004","followuid":"2008","timestamp":1598771070069,"type":"user_follow","desc":"follow"}
+取消关注数据
+{"followeruid":"2004","followuid":"2008","timestamp":1598771070069,"type":"user_follow","desc":"unfollow"}
+
+

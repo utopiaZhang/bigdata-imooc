@@ -1,0 +1,173 @@
+neo4j下载地址
+http://dist.neo4j.org/neo4j-community-3.5.21-unix.tar.gz
+
+create：每次都创建新的点或边
+
+先创建一个点
+create (p1:Person {name:"zs"})
+
+再创建一个点
+create (p2:Person {name:"ls"})
+
+create (p1:Person {name:"zs"}) -[:like]-> (p2:Person {name:"ls"})
+
+
+merge：这个命令在创建节点之前都会先查询一下，如果存在则不创建
+
+merge (p3:Person {name:"jack"})
+merge (p4:Person {name:"tom"})
+merge (p3) -[:like]-> (p4)
+
+match：可以查询之前已有的节点(点)或者关系(边)
+
+match(a:Person {name:"tom"}),(b:Person {name:"jack"})
+merge (a) -[:like]-> (b)
+
+
+
+match(p:Person {name:"tom"}) return p
+
+初始化数据：
+merge(a:User {name:"A"})
+merge(b:User {name:"B"})
+merge(c:User {name:"C"})
+merge(x:User {name:"X"})
+merge(y:User {name:"Y"})
+merge(z:User {name:"Z"})
+merge(a) -[:follow]-> (b)
+merge(c) -[:follow]-> (b)
+merge(a) -[:follow]-> (x)
+merge(a) -[:follow]-> (y)
+merge(c) -[:follow]-> (y)
+merge(c) -[:follow]-> (z)
+
+
+某个主播的粉丝信息
+match (:User {name:"B"}) <-[:follow]- (n:User) return n
+还有一种写法是这样的
+match (n:User) -[:follow]-> (:User {name:"B"}) return n
+
+只返回name的值
+match (n:User) -[:follow]-> (:User {name:"B"}) return n.name
+
+
+
+二度关系：
+我 --> 主播B  --> 粉丝
+
+三度关系
+我 --> 主播B  --> 粉丝 --> 主播N
+
+match (a:User {name:"B"}) <-[:follow]- (b:User) -[:follow]-> (c:User) return a.name as aname,b.name as bname,c.name as cname
+
+
+其实match后面也支持count()、order by、limit等命令
+match (a:User {name:"B"}) <-[:follow]- (b:User) -[:follow]-> (c:User) return a.name as aname,c.name as cname ,count(*) as sum order by sum desc limit 3
+
+注意：在这里可以使用count(*) 或者count(cname)，效果是一样的
+
+
+注意：where需要放在return前面
+match (a:User {name:"B"}) <-[:follow]- (b:User) -[:follow]-> (c:User) where c.name  <> "X" return a.name as aname,c.name as cname ,count(*) as sum order by sum desc limit 3
+
+如何修改节点中的属性
+match (a:User {name:"X"}) set a.age = 18
+
+如何删除关系
+match (:User {name:"A"}) -[r:follow]-> (:User {name:"X"}) delete r
+
+
+
+批量初始化数据：
+
+针对关键字段建立索引
+create constraint on (user:User) assert user.uid is unique;
+
+批量导入语句
+using periodic commit 1000
+load csv with headers from 'file:///follower_demo.log' as line fieldterminator '\t'
+merge (viewer:User {uid: toString(line.fuid)})
+merge (anchor:User {uid: toString(line.uid)})
+merge (viewer) -[:follow]-> (anchor);
+
+
+using periodic commit 1000
+load csv with headers from 'file:///follower_demo.log' as line fieldterminator '\t'
+merge (viewer:Test {name: toString(line.fuid)})
+merge (anchor:Test {name: toString(line.uid)})
+merge (viewer) -[:follow]-> (anchor);
+
+
+
+
+在kafka中创建一些topic
+1：all_type_data_r2p40 这个里面存储所有采集过来的日志数据
+2：user_follow 这个里面存储粉丝的实时关注和取消关注数据
+3：video_info 这个里面存储视频相关信息
+4：user_active 这个里面存储客户端上报的用户活跃数据
+5：default_r2p5 这个里面存储无法具体分配到对应topic中的异常数据
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --partitions 40 --replication-factor 2 --topic all_type_data_r2p40
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --partitions 5 --replication-factor 2 --topic user_follow
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --partitions 5 --replication-factor 2 --topic video_info
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --partitions 5 --replication-factor 2 --topic user_active
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --partitions 5 --replication-factor 2 --topic default_r2p5
+
+
+
+
+user
+uid:123
+timestamp:15262617718
+level:4
+flag:1
+
+
+
+
+using periodic commit 1000
+load csv with headers from 'file:///follower_00.log' as line fieldterminator '\t'
+merge (viewer:User {uid: toString(line.fuid)})
+merge (anchor:User {uid: toString(line.uid)})
+merge (viewer) -[:follow]-> (anchor);
+
+
+
+用户A先关注了用户B
+用户A很快又取关了用户B
+
+
+-----
+用户A取关了用户B
+用户A关注了用户B
+
+
+
+
+1-->2
+1-->3
+1-->4
+
+1	2,3,4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

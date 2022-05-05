@@ -1,0 +1,15 @@
+spark-defaults.conf
+
+spark.eventLog.enabled=true
+spark.eventLog.compress=true
+spark.eventLog.dir=hdfs://bigdata01:9000/tmp/logs/root/logs
+spark.history.fs.logDirectory=hdfs://bigdata01:9000/tmp/logs/root/logs
+spark.yarn.historyServer.address=http://bigdata04:18080
+
+
+
+
+
+spark-env.sh
+
+export SPARK_HISTORY_OPTS="-Dspark.history.ui.port=18080 -Dspark.history.fs.logDirectory=hdfs://bigdata01:9000/tmp/logs/root/logs"

@@ -1,0 +1,118 @@
+
+Java:
+
+public void sayHello(String name,Int age){
+	if(name==null){
+		name = "defaultName"
+	}
+	
+	if(age==0){
+		age = 18
+	}
+	System.out.println("name:"+name+",age:"+age)
+}
+
+Scala:
+def sayHello(name: String = "defaultName",age: Int=18){
+	println("name:"+name+",age:"+age)
+}
+
+
+
+
+
+def sayHello(name: String) = "hello,"+name
+def sayHello(name: String): String = "hello,"+name
+
+def sayHello(name: String){"hello,"+name}
+def sayHello(name: String): Unit = "hello,"+name
+
+
+注意：
+如果在定义方法的时候指定了()，那么在调用的时候()可写可不写
+如果在定义方法的时候没指定()，则调用方法的时候肯定不能带()
+
+class Person{
+   var name = "scala"
+   def sayHello(){
+       println("hello,"+name)
+   }
+   def getName = name
+}
+
+
+class Student{
+    var name = "jack"
+	var age = 10
+	def this(name: String){
+	    this()
+		this.name = name
+	}
+	
+	def this(name: String,age: Int){
+	    this(name: String)
+		this.age = age
+	}
+}
+
+
+
+class Person(val name: String){
+    println("my name is:"+name)
+	def apply(name: String) = {
+	    println("class apply exec...")
+	}
+}
+
+object Person{
+    def apply(name: String) = {
+	    println("object apply exec...")
+		new Person(name)
+	}
+}
+
+写法1：new Person("jack")("tom")
+写法2：Person("mick")
+
+
+
+
+def processException(e: Exception){
+    e match{
+        case e1: FileNotFoundException => println("FileNotFoundException "+e1)
+		case e2: IOException => println("IOException "+e2)
+		case _: Exception => println("Exception")
+    }
+}
+
+
+try{
+  val lines = scala.io.Source.fromFile("D://testssss.txt").mkString
+}catch{
+    case ex: FileNotFoundException => println("no file")
+    case ex: IOException => println("io exception")
+    case ex: Exception => println("exception")	
+}
+
+
+需求：让狗也能抓老鼠
+class cat(val name: String){
+    def catchMouse(){println(name+" catch mouse")}
+}
+
+class dog(val name: String)
+
+implicit def object2Cat(obj: Object): cat = {
+    if(obj.getClass == classOf[dog]){
+        val dog = obj.asInstanceOf[dog]
+		new cat(dog.name)
+	}
+	else Nil
+}
+
+
+
+
+
+
+

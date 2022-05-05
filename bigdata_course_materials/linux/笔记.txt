@@ -1,0 +1,18 @@
+1: SecureCRT
+2: Xshell
+3: MobaXTerm
+
+
+sed 's/l/a/1' hello.txt
+
+sed [address]s/pattern/replacement/flags
+address：表示指定要操作的具体行，是一个可选项
+s：表示替换操作
+pattern：指的是需要替换的内容
+replacement：指的是要替换的新内容
+flags：有多种用法
+	第一种：就是flags可以表示为1~512之间的任意一个数字，表示指定要替换的字符串在这一行中出现第几次时才进行替换
+	第二种：就是flags可以直接表示为g，这样的意识就是对每一行数据中所有匹配到的内容全部进行替换
+	第三种：如果flags位置的值为空，则只会在第一次匹配成功时做替换操作
+	
+	

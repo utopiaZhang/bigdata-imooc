@@ -1,0 +1,10 @@
+//设置模式为.EXACTLY_ONCE (这是默认值) ,还可以设置为AT_LEAST_ONCE
+env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+//确保两次Checkpoint之间有至少多少 ms的间隔(checkpoint最小间隔)
+env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)
+//Checkpoint必须在一分钟内完成，或者被丢弃(checkpoint的超时时间)
+env.getCheckpointConfig.setCheckpointTimeout(60000)
+//同一时间只允许执行一个Checkpoint
+env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
+//表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便根据实际需要恢复到指定的Checkpoint
+env.getCheckpointConfig.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION)

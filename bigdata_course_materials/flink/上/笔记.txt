@@ -1,0 +1,24 @@
+依赖环境
+jdk1.8及以上(配置JAVA_HOME环境变量)
+ssh免密码登录
+
+集群规划如下：
+master：bigdata01
+slave(worker)：bigdata02 bigdata03
+
+
+1：使用DataStream创建表，主要包含下面两种情况
+使用DataStream创建view视图
+使用DataS创建table对象
+
+2：使用DataSet创建表
+注意：此时只能使用旧的执行引擎，新的Blink执行引擎不支持和DataSet转换
+
+3：将表转换成DataStream
+流式查询的结果Table会被动态的更新，即每个新的记录到达输入流时结果就会发生变化，因此，转换此动态查询的DataStream需要对表的更新进行编码
+有几种模式可以将Table转换为DataStream
+Append Mode：这种模式只适用于当动态表仅由INERT这种操作进行修改时，之前添加的数据不会被更新
+Retract Mode：可以使用使用此模式，它使用一个Boolean标识来编码INSERT和DELETE操作
+
+4：将表转换成DataSet
+

@@ -1,0 +1,165 @@
+1：Standalone模式
+spark-submit --master spark://bigdata01:7077 
+
+2: yarn client模式
+spark-submit  --master yarn --deploy-mode client 
+
+3: yarn cluster模式
+spark-submit  --master yarn --deploy-mode cluster
+
+
+
+在Spark中，什么情况下，会产生shuffle？
+reduceByKey，groupByKey，sortByKey，countByKey，join等等
+
+Spark shuffle一共经历了这几个过程：
+1：未优化的 Hash Based Shuffle
+2：优化后的 Hash Based Shuffle
+3：Sort-Based Shuffle
+
+
+
+
+
+checkpoint功能可以分为两块
+1：checkpoint的写操作
+将指定RDD的数据通过checkpoint存储到指定的外部存储中
+
+2：checkpoint的读操作
+任务中RDD数据在使用过程中丢失了，正好这个RDD之前做过checkpoint，所以这时就需要通过checkpoint来恢复数据
+
+
+
+
+spark-submit
+--master yarn
+--deploy-mode cluster
+--executor-memory 1G 
+//给这个任务分配了5个executor
+--num-executors 5
+//每个executor，分配了2个cpu core
+--executor-cores 2
+
+
+//设置默认并行度为5
+conf.set("spark.default.parallelism","5")
+
+
+
+
+spark-submit脚本中经常配置的一些参数
+
+--name mySparkJobName：指定任务名称
+--class com.xxxx：指定入口类
+--master yarn：指定集群地址，on yarn模式指定yarn
+--deploy-mode cluster：client代表yarn-client，cluster代表yarn-cluste
+--executor-memory 1G：executor进程的内存大小，实际工作中可以设置为2~4G即可
+--num-executors 2：分配多少个executor进程
+--executor-cores 2：一个executor进程分配多少个cpu core
+--driver-cores 1：driver进程分配多少core，默认为1
+--driver-memory 1G：driver进程的内存，如果需要使用类似于collect之类的action算子向Driver端拉取数据，则这里可以设置大一些
+--jars fastjson.jar,abc.jar：在这里可以设置job依赖的第三方jar包
+--conf "spark.default.parallelism=10"：可以动态指定一些spark任务的参数，指定多个参数可以通过多个--conf指定，或者在一个--conf后面的双引号中指定多个，多个参数之间用空格隔开即可
+
+
+
+
+
+
+针对--num-executors 和 --executor-cores的设置
+第一种方式：多executor模式
+--num-executors 2
+--executor-cores 1
+
+
+第二种方式：多core模式
+--num-executors 1
+--executor-cores 2
+
+
+
+spark.locality.wait: 默认等待3秒（3000）
+spark.locality.wait.process
+spark.locality.wait.node
+spark.locality.wait.rack
+
+
+
+wordCountRDD:
+(hello,1)
+(you,1)
+(hello,1)
+(me,1)
+
+counts:
+(hello,2)
+(you,1)
+(me,1)
+
+val counts = wordCountRDD.reduceByKey(_ + _)
+val counts = wordCountRDD.groupByKey().map(wc=>{wc._1,wc._2.sum})
+
+
+
+
+
+video_info.log
+{"uid":"8407173251001","vid":"14943445328940001","area":"US","status":"1","start_time":"1494344544","end_time":"1494344570","watch_num":101,"share_num":"21","type":"video_info"}
+	uid,vid,area
+	
+gift_record.log
+{"uid":"7201232141001","vid":"14943445328940001","good_id":"223","gold":"10","timestamp":1494344574,"type":"gift_record"}
+	vid,gold
+	
+大致的步骤：
+1：直接使用sparkSession中的load方式加载json数据
+2：对这两份数据注册临时表
+3：执行sql计算TopN主播
+4：使用foreach将结果打印到控制台
+
+
+表：
+video_info
+gift_record
+
+SQL:
+select
+	t4.area,
+	concat_ws(',',collect_list(t4.topn)) as topn_list
+from(
+	select 
+		t3.area,concat(t3.uid,':',cast(t3.gold_sum_all as int)) as topn
+	from(
+		select
+			t2.uid,t2.area,t2.gold_sum_all,row_number() over (partition by area order by gold_sum_all desc) as num
+		from(
+			select
+				t1.uid,max(t1.area) as area,sum(t1.gold_sum) as gold_sum_all
+			from(
+				select
+					vi.uid,vi.vid,vi.area,gr.gold_sum
+				from
+					video_info as vi
+				join
+				(select
+					vid,sum(gold) as gold_sum
+				from
+					gift_record
+				group by vid
+				)as gr
+				on vi.vid = gr.vid
+			) as t1
+			group by t1.uid
+		) as t2
+	)as t3
+	where t3.num <=3
+) as t4
+group by t4.area
+
+
+
+
+
+
+
+

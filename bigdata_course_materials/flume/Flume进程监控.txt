@@ -1,0 +1,43 @@
+monlist.conf
+example=startExample.sh
+
+
+
+
+startExample.sh
+#!/bin/bash
+flume_path=/data/soft/apache-flume-1.9.0-bin
+nohup ${flume_path}/bin/flume-ng agent --name a1 --conf ${flume_path}/conf/ --conf-file ${flume_path}/conf/example.conf  &
+
+
+
+monlist.sh
+#!/bin/bash
+monlist=`cat monlist.conf`
+echo "start check"
+for item in ${monlist}
+do
+	# 设置字段分隔符
+	OLD_IFS=$IFS
+	IFS="="
+	# 把一行内容转成多列[数组]
+	arr=($item)
+	# 获取等号左边的内容
+	name=${arr[0]}
+	# 获取等号右边的内容
+	script=${arr[1]}
+	
+	echo "time is:"`date +"%Y-%m-%d %H:%M:%S"`" check "$name
+	if [ `jps -m|grep $name | wc -l` -eq 0 ]
+	then
+		# 发短信或者邮件告警
+		echo `date +"%Y-%m-%d %H:%M:%S"`$name "is none"
+		sh -x ./${script}
+	fi
+done
+
+
+
+
+# crontab
+* * * * * root /bin/bash /data/soft/monlist.sh

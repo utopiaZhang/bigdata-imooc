@@ -1,0 +1,43 @@
+如果你想要使用Table API 和SQL的话，需要添加下面的依赖
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-table-api-java-bridge_2.12</artifactId>
+  <version>1.11.0</version>
+  <scope>provided</scope>
+</dependency>
+
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-table-api-scala-bridge_2.12</artifactId>
+  <version>1.11.0</version>
+  <scope>provided</scope>
+</dependency>
+
+
+如果你想在 本地 IDE中运行程序，还需要添加下面的依赖
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-table-planner-blink_2.12</artifactId>
+  <version>1.11.0</version>
+  <scope>provided</scope>
+</dependency>
+
+
+如果你用到了老的执行引擎，还需要添加下面这个依赖
+<dependency>
+    <groupId>org.apache.flink</groupId>
+    <artifactId>flink-table-planner_2.12</artifactId>
+    <version>1.11.1</version>
+   <scope>provided</scope>
+</dependency>
+
+
+
+注意：由于部分 table 相关的代码是用 Scala 实现的，所以，这个依赖也是必须的。
+【这个依赖我们在前面开发DataStream程序的时候已经添加过了】
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-streaming-scala_2.12</artifactId>
+  <version>1.11.0</version>
+  <scope>provided</scope>
+</dependency>

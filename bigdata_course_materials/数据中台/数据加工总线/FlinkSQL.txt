@@ -1,0 +1,27 @@
+create table source(
+name string,
+age int
+) with(
+'connector' = 'kafka',
+'topic' = 'stu',
+'properties.bootstrap.servers' = 'bigdata01:9092,bigdata02:9092,bigdata03:9092',
+'properties.group.id' = 'g2',
+'format' = 'json',
+'scan.startup.mode' = 'latest-offset',
+'json.fail-on-missing-field' = 'false',
+'json.ignore-parse-errors' = 'true'
+)
+
+
+
+
+create table sink(
+newname string,
+age int
+) with(
+'connector' = 'kafka',
+'topic' = 'stu_clean',
+'properties.bootstrap.servers' = 'bigdata01:9092,bigdata02:9092,bigdata03:9092',
+'format' = 'json',
+'sink.partitioner' = 'round-robin'
+)

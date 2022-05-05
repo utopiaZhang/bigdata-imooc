@@ -1,0 +1,3 @@
+注意：在使用的时候需要根据自己本地环境修改一下虚拟机的静态ip。
+
+链接：https://share.weiyun.com/J6gonnJL 密码：g2z88z

@@ -1,0 +1,70 @@
+topic:hello
+
+1 2 3 4 5 7
+
+partition-1：2 4 7
+partition-2：1 3 5
+
+
+消费者组A
+consumer-1
+consumer-2
+
+consumer-1消费partition-1
+2 4 7
+consumer-2消费partition-2
+1 3 5
+
+
+消费者组B
+consumer-3
+2 1 4 3 7 5
+
+
+
+
+ S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT     GCT   
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+  0.00 100.00  95.02  37.88  91.96  91.54     24    0.476     0    0.000    0.476
+
+
+
+
+1：Flume采集数据，将数据实时写入Kafka
+2：Flume从Kafka中消费数据，保存到HDFS，做数据备份
+
+
+
+KafkaSource：从kafak中读取数据
+KafkaSink：向kafka中写入数据
+
+
+需要配置两个Agent
+第一个Agent：负责实时采集日志文件，将采集到的数据写入kafka中
+第二个Agent：负责从kafka中读取数据，将数据写入HDFS中进行备份(落盘)
+
+
+针对第一个Agent：file-to-kafka.conf
+source：ExecSource，使用tail -F监控日志文件即可
+channel：MemoryChannel
+sink：KafkaSink
+
+
+针对第二个Agent：kafka-to-hdfs.conf
+source：KafkSource
+channel：MemoryChannel
+sin：HdfsSink
+
+
+
+bin/flume-ng agent --name a1 --conf conf-kafka-to-hdfs --conf-file conf-kafka-to-hdfs/kafka-to-hdfs.conf
+
+bin/flume-ng agent --name a1 --conf conf-file-to-kafka --conf-file conf-file-to-kafka/file-to-kafka.conf
+
+
+
+

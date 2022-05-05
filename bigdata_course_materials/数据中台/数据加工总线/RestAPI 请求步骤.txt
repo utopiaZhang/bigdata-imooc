@@ -1,0 +1,70 @@
+1 查看jar包和spark_libs压缩包的文件信息
+GET请求
+http://bigdata01:9870/webhdfs/v1/__spark_libs__.zip?op=GETFILESTATUS
+http://bigdata01:9870/webhdfs/v1/spark-examples_2.11-2.4.3.jar?op=GETFILESTATUS
+2 申请新的applicationId
+POST请求
+http://bigdata01:8088/ws/v1/cluster/apps/new-application?user.name=root
+
+3 向YARN集群提交Spark任务
+POST请求
+http://bigdata01:8088/ws/v1/cluster/apps
+
+Content-Type=application/json
+
+{
+    "application-id": "application_1783233076256_0002",
+    "application-name": "test",
+    "application-type": "SPARK",
+    "keep-containers-across-application-attempts": false,
+    "max-app-attempts": 1,
+    "unmanaged-AM": false,
+    "am-container-spec": {
+        "commands": {
+          "command": "/data/soft/jdk1.8/bin/java -server -Xmx1024m -Dspark.yarn.app.container.log.dir=<LOG_DIR> -Dspark.master=yarn -Dspark.submit.deployMode=cluster -Dspark.executor.cores=1 -Dspark.executor.instances=3 -Dspark.executor.memory=1g -Dspark.yarn.cache.confArchive=hdfs://bigdata01:9000/__spark_conf__.zip   -Dspark.yarn.cache.filenames=hdfs://bigdata01:9000/__spark_libs__.zip#__spark_libs__,hdfs://bigdata01:9000/spark-examples_2.11-2.4.3.jar#__app__.jar -Dspark.yarn.cache.visibilities=PUBLIC,PUBLIC -Dspark.yarn.cache.timestamps=1783235372824,1783235557253 -Dspark.yarn.cache.sizes=238629254,2023919 -Dspark.yarn.cache.types=ARCHIVE,FILE -Dspark.yarn.queue=default  org.apache.spark.deploy.yarn.ApplicationMaster --class org.apache.spark.examples.SparkPi --jar __app__.jar  1><LOG_DIR>/stdout 2><LOG_DIR>/stder"
+        },
+        "environment": {
+            "entry": [{
+                "key": "SPARK_USER",
+                "value": "root"
+            }, {
+                "key": "SPARK_YARN_MODE",
+                "value": true
+            }, {
+                "key": "SPARK_YARN_STAGING_DIR",
+                "value": "hdfs://bigdata01:9000/user/root/.sparkStaging/application_1783233076256_0002"
+            }, {
+                "key": "CLASSPATH",
+                "value": "{{PWD}}<CPS>/data/soft/spark-2.4.3-bin-hadoop2.7/jars/*<CPS>$HADOOP_CONF_DIR<CPS>/data/soft/hadoop-3.2.0/share/hadoop/common/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/common/lib/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/hdfs/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/hdfs/lib/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/yarn/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/yarn/lib/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/mapreduce/*<CPS>/data/soft/hadoop-3.2.0/share/hadoop/mapreduce/lib/*<CPS>{{PWD}}/__spark_conf__/__hadoop_conf__"
+                
+            }
+        ]},
+        "local-resources": {
+            "entry": [{
+                "key": "__app__.jar",
+                "value": {
+                    "resource": "hdfs://bigdata01:9000/spark-examples_2.11-2.4.3.jar",
+                    "size": 2023919,
+                    "timestamp": 1783235557253,
+                    "type": "FILE",
+                    "visibility": "PUBLIC"
+                }
+            }
+        ]}
+    }
+}
+
+4 查看YARN中任务的运行状态
+GET请求
+http://bigdata01:8088/ws/v1/cluster/apps/application_1783045687766_0012/state
+
+
+5 停止YARN中任务的运行
+PUT请求
+Content-Type=application/json
+
+http://bigdata01:8088/ws/v1/cluster/apps/application_1783045687766_0012/state?user.name=root
+
+{
+    "state":"KILLED"
+}

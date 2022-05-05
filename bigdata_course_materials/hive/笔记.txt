@@ -1,0 +1,337 @@
+MapReduce
+Tez
+Spark
+Flink
+
+
+
+http://archive.apache.org/dist/
+
+\001
+
+create table t2(
+  age int comment '年龄'
+) comment '测试';
+
+create table t3_new(
+  id int comment 'ID',
+  stu_name string comment 'name' ,
+  stu_birthday date comment 'birthday',
+  online boolean comment 'is onlone'
+)row format delimited 
+fields terminated by '\t' 
+lines terminated by '\n';
+
+
+
+create table stu(
+  id int,
+  name string,
+  favors array<string>
+)row format delimited 
+fields terminated by '\t'
+collection items terminated by ','
+lines terminated by '\n';
+
+load data local inpath '/data/soft/hivedata/stu.data' into table stu;
+
+
+create table stu2(
+  id int,
+  name string,
+  scores map<string,int>
+)row format delimited 
+fields terminated by '\t'
+collection items terminated by ','
+map keys terminated by ':'
+lines terminated by '\n';
+
+load data local inpath '/data/soft/hivedata/stu2.data' into table stu2;
+
+
+create table stu3(
+  id int,
+  name string,
+  address struct<home_addr:string,office_addr:string>
+)row format delimited 
+fields terminated by '\t'
+collection items terminated by ','
+lines terminated by '\n';
+
+load data local inpath '/data/soft/hivedata/stu3.data' into table stu3;
+
+
+
+
+
+create table student(
+  id int,
+  name string,
+  favors array<string>,
+  scores map<string,int>,
+  address struct<home_addr:string,office_addr:string>
+)row format delimited 
+fields terminated by '\t'
+collection items terminated by ','
+map keys terminated by ':'
+lines terminated by '\n';
+
+load data local inpath '/data/soft/hivedata/student.data' into table student;
+
+
+create external table external_table(
+  key string
+)location '/data/external';
+
+load data local inpath '/data/soft/hivedata/external_table.data' into table external_table;
+
+
+内部表转外部表
+alter table tblName set tblproperties('external'='true')
+
+外部表转内部表
+alter table tblName set tblproperties('external'='false')
+
+
+hdfs:
+/data/logs/
+          20200101
+		  20200102
+
+
+
+create table partition_1(
+  id int,
+  name string
+)partitioned by (dt string)
+row format delimited 
+fields terminated by '\t';
+
+
+load data local inpath '/data/soft/hivedata/partition_1.data' into table partition_1  partition(dt='20200101');
+
+
+alter table partition_1 add partition(dt='20200102');
+
+alter table partition_1 drop partition(dt='20200102');
+
+
+create table partition_2(
+  id int,
+  name string
+)partitioned by (year int,school string)
+row format delimited 
+fields terminated by '\t';
+
+
+load data local inpath '/data/soft/hivedata/partition_2.data' into table partition_2  partition(year=2020,school='xk');
+
+load data local inpath '/data/soft/hivedata/partition_2.data' into table partition_2  partition(year=2020,school='english');
+
+
+
+load data local inpath '/data/soft/hivedata/partition_2.data' into table partition_2  partition(year=2019,school='xk');
+load data local inpath '/data/soft/hivedata/partition_2.data' into table partition_2  partition(year=2019,school='english');
+
+
+
+create external table ex_par(
+  id int,
+  name string
+)partitioned by (dt string)
+row format delimited 
+fields terminated by '\t'
+location '/data/ex_par';
+
+load data local inpath '/data/soft/hivedata/ex_par.data' into table ex_par  partition(dt='20200101');
+
+
+alter table ex_par add partition(dt='20200101') location '/data/ex_par/dt=20200101';
+
+
+总结：
+load data local inpath '/data/soft/hivedata/ex_par.data' into table ex_par  partition(dt='20200101');
+load data .... partition 这条命令做了两个事情，1：上传数据，2：添加分区(绑定数据和分区之间的关系)
+
+
+
+hdfs dfs -mkdir /data/ex_par/dt=20200101
+hdfs dfs -put /data/soft/hivedata/ex_par.data /data/ex_par/dt=20200101
+
+alter table ex_par add partition(dt='20200101') location '/data/ex_par/dt=20200101';
+上面这三条命令做了两件事情，1：上传数据 2：添加分区(绑定数据和分区之间的关系)
+
+
+
+create table bucket_tb(
+   id int
+)clustered by (id) into 4 buckets;
+
+set hive.enforce.bucketing=true;
+
+insert into table bucket_tb select id from b_source where id is not null
+
+
+create table b_source(id int);
+
+load data local inpath '/data/soft/hivedata/b_source.data' into table b_source;
+
+
+
+select * from bucket_tb tablesample(bucket 1 out of 4 on id);
+
+tablesample(bucket x out of y on id);
+注意：y>=x
+y：表示把桶表中的数据随机分为多少桶
+x: 表示取出第几桶的数据
+
+
+select * from bucket_tb tablesample(bucket 1 out of 4 on id);
+select * from bucket_tb tablesample(bucket 2 out of 4 on id);
+select * from bucket_tb tablesample(bucket 3 out of 4 on id);
+select * from bucket_tb tablesample(bucket 4 out of 4 on id);
+
+
+
+select a.id,a.name,b.addr from a join b on a.id = b.id
+
+
+
+
+create view v1 as select id,stu_name from t3_new;
+
+
+
+
+
+get_json_object()
+
+
+
+
+create external table ex_par_more_type(
+  log string
+)partitioned by (dt string,d_type string)
+row format delimited 
+fields terminated by '\t'
+location '/moreType';
+
+
+每天都要执行一次
+alter table ex_par_more_type add  partition(dt='20200504',d_type='giftRecord') location '/moreType/20200504/giftRecord';
+alter table ex_par_more_type add partition(dt='20200504',d_type='userInfo') location '/moreType/20200504/userInfo';
+alter table ex_par_more_type add partition(dt='20200504',d_type='videoInfo') location '/moreType/20200504/videoInfo';
+
+
+create view gift_record_view as select 
+get_json_object(log,'$.send_id') as send_id,
+get_json_object(log,'$.good_id') as good_id,
+get_json_object(log,'$.video_id') as video_id,
+get_json_object(log,'$.gold') as gold,
+dt
+from ex_par_more_type
+where d_type='giftRecord';
+
+
+create view user_info_view as select 
+get_json_object(log,'$.uid') as uid,
+get_json_object(log,'$.nickname') as nickname,
+get_json_object(log,'$.usign') as usign,
+get_json_object(log,'$.sex') as sex,
+dt
+from ex_par_more_type
+where d_type='userInfo';
+
+
+create view video_info_view as select 
+get_json_object(log,'$.id') as id,
+get_json_object(log,'$.uid') as uid,
+get_json_object(log,'$.lat') as lat,
+get_json_object(log,'$.lnt') as lnt,
+dt
+from ex_par_more_type
+where d_type='videoInfo';
+
+
+create external table student_score(
+  id int,
+  name string,
+  sub string,
+  score int
+)row format delimited 
+fields terminated by '\t'
+location '/data/student_score';
+
+select * from 
+(
+select *,row_number() over(partition by sub order by score desc) as num from student_score
+) s where s.num<=3;
+
+
+
+select *,rank() over(partition by sub order by score desc) as num from student_score
+
+
+
+select *,dense_rank() over(partition by sub order by score desc) as num from student_score;
+
+
+zs      swing
+zs      footbal
+zs      sing
+zs      codeing
+zs      swing
+
+
+zs	swing,footbal,sing,codeing,swing
+
+
+create external table student_favors(
+  name string,
+  favor string
+)row format delimited 
+fields terminated by '\t'
+location '/data/student_favors';
+
+
+select name,collect_list(favor) as favor_list from student_favors group by name;
+
+select name,concat_ws(',',collect_list(favor)) as favor_list from student_favors group by name;
+
+zs      swing,footbal,sing
+ls      codeing,swing
+
+zs	swing
+zs	footbal
+zs	sing
+ls	codeing
+ls	swing
+
+create external table student_favors_2(
+  name string,
+  favorlist string
+)row format delimited 
+fields terminated by '\t'
+location '/data/student_favors_2';
+
+
+
+
+select name,favor_new from student_favors_2 lateral view explode(split(favorlist,',')) table1 as favor_new;
+
+
+
+
+
+cluster by id = distribute by id sort by id
+
+
+
+统计order 表中name 去重之后的数据量
+
+select count(distinct name) from order
+
+select count(*) from (select name from order group by name) tmp
+
+
+
